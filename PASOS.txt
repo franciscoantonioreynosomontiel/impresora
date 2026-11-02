@@ -1,0 +1,111 @@
+================================================================================
+   GUÍA RÁPIDA: SIMULADOR DE IMPRESORA EPSON TM-T20III EN VISUAL STUDIO CODE
+================================================================================
+
+Este proyecto simula exactamente una impresora térmica Epson TM-T20III con
+conexión Ethernet / LAN. Escucha en el puerto estándar 9100.
+Cuando tu app Flutter envíe un ticket, la consola de VS Code te mostrará:
+1. Si se conectó el dispositivo móvil o emulador (con su dirección IP).
+2. Cuántos bytes llegaron.
+3. El ticket impreso y formateado con corte de papel (✂️).
+4. La confirmación de desconexión.
+
+--------------------------------------------------------------------------------
+PASO 1: REQUISITOS PREVIOS
+--------------------------------------------------------------------------------
+1. Tener instalado Node.js en tu computadora (descárgalo gratis en https://nodejs.org si no lo tienes).
+2. Tener Visual Studio Code.
+
+--------------------------------------------------------------------------------
+PASO 2: ABRIR EL PROYECTO EN VISUAL STUDIO CODE
+--------------------------------------------------------------------------------
+1. Abre Visual Studio Code.
+2. Ve a: Archivo -> Abrir carpeta... (File -> Open Folder...).
+3. Selecciona esta carpeta (donde está este archivo PASOS.txt y server.js).
+
+--------------------------------------------------------------------------------
+PASO 3: INICIAR EL SERVIDOR DE LA IMPRESORA
+--------------------------------------------------------------------------------
+1. Abre una nueva terminal en VS Code:
+   Menú superior: "Terminal" -> "Nueva Terminal" (o presiona Ctrl + Shift + `).
+2. En la terminal escribe:
+
+      node server.js
+
+3. Verás una pantalla como esta:
+   ===========================================================
+   🖨️   SIMULADOR DE IMPRESORA EPSON TM-T20III (ETHERNET/LAN)
+   ===========================================================
+   🚀 Servidor escuchando en el puerto TCP: 9100
+
+   📡 Direcciones IP detectadas en tu computadora:
+      👉 Interfaz [Wi-Fi]: 192.168.1.50
+   ===========================================================
+
+--------------------------------------------------------------------------------
+PASO 4: ¿QUÉ IP PONER EN TU APP DE FLUTTER?
+--------------------------------------------------------------------------------
+La IP depende de dónde estés probando tu app:
+
+A) SI PRUEBAS EN EL EMULADOR DE ANDROID (Android Studio):
+   - IP: 10.0.2.2
+   - Puerto: 9100
+   * (Nota: Los emuladores de Android usan 10.0.2.2 para comunicarse con tu PC).
+
+B) SI PRUEBAS EN UN CELULAR FÍSICO (conectado a tu mismo WiFi):
+   - IP: La IP que mostró el servidor en la consola (por ejemplo: 192.168.1.50).
+   - Puerto: 9100
+   * Importante: Tu celular y tu PC deben estar conectados a la misma red WiFi.
+   * Si no conecta, verifica que el Firewall de Windows no esté bloqueando el puerto 9100.
+
+C) SI PRUEBAS EN SIMULADOR DE iOS O APP WEB/DESKTOP:
+   - IP: 127.0.0.1 (o localhost)
+   - Puerto: 9100
+
+--------------------------------------------------------------------------------
+PASO 5: PROBAR QUE FUNCIONE (TEST RÁPIDO SIN FLUTTER)
+--------------------------------------------------------------------------------
+Para verificar que el simulador funciona antes de probar tu app:
+1. Deja corriendo `node server.js` en tu primera terminal.
+2. Abre una segunda terminal en VS Code (icono de "+" en la terminal).
+3. Escribe:
+
+      node test-print.js
+
+4. Mira la primera terminal: ¡verás la conexión y el ticket de restaurante impreso!
+
+--------------------------------------------------------------------------------
+PASO 6: CÓMO CONECTAR DESDE TU APP FLUTTER (EJEMPLO RÁPIDO)
+--------------------------------------------------------------------------------
+En Flutter puedes usar sockets directos de dart:io o paquetes como `esc_pos_printer`:
+
+Ejemplo con Socket nativo de Dart:
+```dart
+import 'dart:io';
+
+Future<void> imprimirTicket(List<int> bytesTicket) async {
+  // Cambia la IP según el caso (10.0.2.2 para emulador, o tu IP local)
+  final String printerIp = '10.0.2.2';
+  final int printerPort = 9100;
+
+  try {
+    print('Conectando a impresora...');
+    final socket = await Socket.connect(printerIp, printerPort, timeout: Duration(seconds: 5));
+    print('Conectado!');
+
+    socket.add(bytesTicket);
+    await socket.flush();
+    await socket.close();
+    print('Ticket enviado!');
+  } catch (e) {
+    print('Error al conectar con la impresora: $e');
+  }
+}
+```
+
+--------------------------------------------------------------------------------
+PASO 7: DETENER EL SERVIDOR
+--------------------------------------------------------------------------------
+Cuando termines de hacer pruebas:
+- En la terminal donde corre `node server.js`, presiona: Ctrl + C
+================================================================================
